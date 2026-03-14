@@ -17,11 +17,11 @@ class FileParserService:
 
         extension = Path(upload_file.filename).suffix.lower()
         if extension not in self.settings.allowed_extensions:
-            raise InvalidInputError("Tipo de arquivo invalido. Use apenas .txt ou .pdf.")
+            raise InvalidInputError("Tipo de arquivo inválido. Use apenas .txt ou .pdf.")
 
         file_bytes = await upload_file.read()
         if not file_bytes:
-            raise InvalidInputError("O arquivo enviado esta vazio.")
+            raise InvalidInputError("O arquivo enviado está vazio.")
 
         if len(file_bytes) > self.settings.max_upload_size_bytes:
             raise InvalidInputError("O arquivo excede o limite permitido.")
@@ -32,16 +32,13 @@ class FileParserService:
         if extension == ".pdf":
             return self._extract_text_from_pdf(file_bytes)
 
-        raise InvalidInputError("Tipo de arquivo nao suportado.")
+        raise InvalidInputError("Tipo de arquivo não suportado.")
 
     def _extract_text_from_txt(self, file_bytes: bytes) -> str:
-        try:
-            text = file_bytes.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            raise FileProcessingError("Nao foi possivel ler o arquivo TXT enviado.") from exc
+        text = self._decode_text_file(file_bytes)
 
         if not text.strip():
-            raise InvalidInputError("O arquivo TXT nao contem texto util.")
+            raise InvalidInputError("O arquivo TXT não contém texto útil.")
 
         return text
 
@@ -53,9 +50,19 @@ class FileParserService:
             extracted_pages = [page.extract_text() or "" for page in reader.pages]
             text = "\n".join(extracted_pages).strip()
         except Exception as exc:
-            raise FileProcessingError("PDF invalido ou corrompido.") from exc
+            raise FileProcessingError("PDF inválido ou corrompido.") from exc
 
         if not text:
-            raise InvalidInputError("O PDF nao contem texto util.")
+            raise InvalidInputError("O PDF não contém texto útil.")
 
         return text
+
+    def _decode_text_file(self, file_bytes: bytes) -> str:
+        encodings = ("utf-8-sig", "utf-8", "latin-1")
+        for encoding in encodings:
+            try:
+                return file_bytes.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+
+        raise FileProcessingError("Não foi possível ler o arquivo TXT enviado.")

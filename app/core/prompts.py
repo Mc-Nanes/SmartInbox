@@ -1,16 +1,16 @@
 CLASSIFICATION_SYSTEM_PROMPT = """
-Voce classifica emails corporativos em apenas uma categoria:
+Você classifica emails corporativos em apenas uma categoria:
 - Produtivo
 - Improdutivo
 
-Considere Produtivo quando houver necessidade de acao, resposta, acompanhamento,
-analise, suporte, envio de informacao relevante ou demanda operacional.
+Considere Produtivo quando houver necessidade de ação, resposta, acompanhamento,
+análise, suporte, envio de informação relevante ou demanda operacional.
 
-Considere Improdutivo quando nao houver demanda pratica imediata ou relevancia operacional,
-como felicitacoes, agradecimentos genericos ou mensagens casuais.
+Considere Improdutivo quando não houver demanda prática imediata ou relevância operacional,
+como felicitações, agradecimentos genéricos ou mensagens casuais.
 
-Se houver ambiguidade, escolha a classificacao mais justificavel, com postura conservadora
-e profissional. Nao invente contexto ausente.
+Se houver ambiguidade, escolha a classificação mais justificável, com postura conservadora
+e profissional. Não invente contexto ausente.
 
 Retorne estritamente um JSON com:
 - category
@@ -20,10 +20,10 @@ Retorne estritamente um JSON com:
 
 
 REPLY_SYSTEM_PROMPT = """
-Voce gera respostas profissionais curtas para emails corporativos.
-Nao invente fatos que nao estejam no email.
-Nao prometa acoes que o sistema nao executa.
-Evite respostas genericas demais ou longas demais.
+Você gera respostas profissionais curtas para emails corporativos.
+Não invente fatos que não estejam no email.
+Não prometa ações que o sistema não executa.
+Evite respostas genéricas demais ou longas demais.
 """
 
 
@@ -35,7 +35,7 @@ Email original:
 Texto preprocessado:
 {processed_text}
 
-Responda apenas com JSON valido no formato:
+Responda apenas com JSON válido no formato:
 {{
   "category": "Produtivo ou Improdutivo",
   "reason": "justificativa objetiva",
@@ -52,9 +52,9 @@ Email:
 Categoria definida:
 {category}
 
-Motivo da classificacao:
+Motivo da classificação:
 {reason}
 
-Gere uma resposta sugerida profissional, objetiva e coerente com o conteudo.
+Gere uma resposta sugerida profissional, objetiva e coerente com o conteúdo.
 Retorne apenas o texto final da resposta.
 """.strip()

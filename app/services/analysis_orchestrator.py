@@ -19,15 +19,20 @@ class AnalysisOrchestratorService:
         self.openai_analyzer = openai_analyzer or OpenAIEmailAnalyzerService()
 
     async def analyze(self, text: str | None = None, upload_file: UploadFile | None = None) -> AnalysisResponse:
-        if upload_file is None and (text is None or not text.strip()):
-            raise InvalidInputError("Informe o texto do email ou envie um arquivo valido.")
+        normalized_text = (text or "").strip()
+        has_uploaded_file = upload_file is not None and bool(upload_file.filename)
 
-        source_text = text or ""
-        if upload_file is not None:
+        if not has_uploaded_file and not normalized_text:
+            raise InvalidInputError("Informe o texto do email ou envie um arquivo válido.")
+
+        source_text = normalized_text
+        if has_uploaded_file:
+            # Regra explícita: quando texto e arquivo forem enviados juntos, o arquivo tem prioridade.
             source_text = await self.file_parser.extract_text(upload_file)
 
         preprocessed = self.text_preprocessor.preprocess(source_text)
         return self.openai_analyzer.analyze_email(
             original_text=preprocessed.original_text,
+            normalized_text=preprocessed.normalized_text,
             processed_text=preprocessed.processed_text,
         )

@@ -19,3 +19,7 @@ class OpenAIIntegrationError(AppBaseException):
 
 class ServiceConfigurationError(AppBaseException):
     pass
+
+
+class InternalServerError(AppBaseException):
+    pass

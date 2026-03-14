@@ -62,7 +62,7 @@ class TextPreprocessorService:
 
     def preprocess(self, text: str) -> PreprocessedText:
         if not text or not text.strip():
-            raise InvalidInputError("Informe um texto ou envie um arquivo valido.")
+            raise InvalidInputError("Informe um texto ou envie um arquivo válido.")
 
         normalized_text = self._normalize_text(text)
         text_without_punctuation = self._remove_punctuation(normalized_text)
@@ -71,7 +71,7 @@ class TextPreprocessorService:
         processed_tokens = self._apply_stemming(filtered_tokens)
 
         if not processed_tokens:
-            raise InvalidInputError("Nao foi encontrado conteudo util apos o pre-processamento.")
+            raise InvalidInputError("Não foi encontrado conteúdo útil após o pré-processamento.")
 
         return PreprocessedText(
             original_text=text.strip(),
@@ -95,7 +95,11 @@ class TextPreprocessorService:
         return re.findall(r"\b\w+\b", text)
 
     def _remove_stop_words(self, tokens: list[str]) -> list[str]:
-        return [token for token in tokens if token not in STOP_WORDS and len(token) > 1]
+        return [
+            token
+            for token in tokens
+            if token not in STOP_WORDS and len(token) > 1 and not token.isdigit()
+        ]
 
     def _apply_stemming(self, tokens: list[str]) -> list[str]:
         return [self.stemmer.stem(token) for token in tokens]
