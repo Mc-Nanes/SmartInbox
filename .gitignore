@@ -1,0 +1,7 @@
+.env
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+app/static/output.css
+tailwindcss.exe

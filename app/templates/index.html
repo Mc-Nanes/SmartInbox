@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartInbox | Classificação de Emails</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='output.css') }}" />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-slate-100">
+    <main class="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
+      <section class="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-cyan-950/20 backdrop-blur">
+          <p class="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">SmartInbox</p>
+          <h1 class="mt-4 text-4xl font-bold text-white">Classificação inteligente de emails corporativos</h1>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-300">
+            Cole o texto do email ou envie um arquivo .txt ou .pdf para obter a classificação,
+            a justificativa e uma resposta sugerida.
+          </p>
+
+          <form id="analysis-form" class="mt-8 space-y-6">
+            <div>
+              <div class="mb-2 flex items-center justify-between">
+                <label for="email-text" class="text-sm font-medium text-slate-200">Texto do email</label>
+                <span id="char-count" class="text-xs text-slate-400">0 caracteres</span>
+              </div>
+              <textarea
+                id="email-text"
+                name="text"
+                rows="12"
+                class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400"
+                placeholder="Cole aqui o conteúdo do email..."
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="email-file" class="mb-2 block text-sm font-medium text-slate-200">Arquivo .txt ou .pdf</label>
+              <div id="dropzone" class="rounded-2xl border border-dashed border-white/15 bg-slate-900/60 p-5 text-sm text-slate-300">
+                <input id="email-file" name="file" type="file" accept=".txt,.pdf" class="block w-full cursor-pointer text-sm text-slate-300" />
+                <p class="mt-2 text-xs text-slate-400">Arraste um arquivo para esta área ou selecione manualmente.</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+              <button
+                id="submit-button"
+                type="submit"
+                class="rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Analisar email
+              </button>
+              <button
+                id="clear-button"
+                type="button"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+              >
+                Limpar
+              </button>
+            </div>
+          </form>
+
+          <div id="feedback" class="mt-6 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+        </div>
+
+        <aside class="rounded-3xl border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-black/20">
+          <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">Resultado</p>
+          <div id="empty-state" class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm leading-7 text-slate-300">
+            O resultado da análise aparecerá aqui com categoria, justificativa e resposta sugerida.
+          </div>
+
+          <div id="loading-state" class="mt-6 hidden rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-6 text-sm text-cyan-100">
+            Processando o email, aguarde...
+          </div>
+
+          <div id="result-card" class="mt-6 hidden space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6">
+            <div>
+              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Categoria</p>
+              <p id="result-category" class="mt-2 text-2xl font-bold text-white"></p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Justificativa</p>
+              <p id="result-reason" class="mt-2 text-sm leading-7 text-slate-200"></p>
+            </div>
+            <div>
+              <div class="flex items-center justify-between gap-4">
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Resposta sugerida</p>
+                <button
+                  id="copy-button"
+                  type="button"
+                  class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/5"
+                >
+                  Copiar
+                </button>
+              </div>
+              <p id="result-reply" class="mt-2 whitespace-pre-line text-sm leading-7 text-slate-200"></p>
+            </div>
+            <div>
+              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Confiança</p>
+              <p id="result-confidence" class="mt-2 text-sm text-slate-200">Não informado</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', path='app.js') }}"></script>
+  </body>
+</html>
