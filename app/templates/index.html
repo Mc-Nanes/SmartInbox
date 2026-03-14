@@ -3,44 +3,117 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SmartInbox | Classificação de Emails</title>
+    <title>SmartInbox | Classificação inteligente de emails</title>
     <link rel="stylesheet" href="{{ url_for('static', path='output.css') }}" />
   </head>
-  <body class="min-h-screen bg-slate-950 text-slate-100">
-    <main class="mx-auto flex min-h-screen max-w-6xl items-center px-6 py-12">
-      <section class="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl shadow-cyan-950/20 backdrop-blur">
-          <p class="text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">SmartInbox</p>
-          <h1 class="mt-4 text-4xl font-bold text-white">Classificação inteligente de emails corporativos</h1>
-          <p class="mt-4 max-w-2xl text-base leading-7 text-slate-300">
-            Cole o texto do email ou envie um arquivo .txt ou .pdf para obter a classificação,
-            a justificativa e uma resposta sugerida.
-          </p>
+  <body class="min-h-screen bg-slate-950 font-sans text-slate-100 antialiased">
+    <div class="pointer-events-none fixed inset-0 overflow-hidden">
+      <div class="absolute -left-12 top-0 h-72 w-72 rounded-full bg-cyan-400/12 blur-3xl"></div>
+      <div class="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl"></div>
+      <div class="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-sky-400/8 blur-3xl"></div>
+    </div>
 
-          <form id="analysis-form" class="mt-8 space-y-6">
-            <div>
-              <div class="mb-2 flex items-center justify-between">
-                <label for="email-text" class="text-sm font-medium text-slate-200">Texto do email</label>
-                <span id="char-count" class="text-xs text-slate-400">0 caracteres</span>
+    <main class="relative mx-auto max-w-7xl px-6 py-10 lg:py-14">
+      <header class="mb-10 space-y-6">
+        <div class="inline-flex rounded-full border border-cyan-400/25 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">
+          SmartInbox
+        </div>
+
+        <div class="max-w-4xl space-y-4">
+          <h1 class="max-w-3xl text-4xl font-semibold tracking-tight text-white lg:text-5xl">
+            Classificação inteligente de emails com resposta sugerida
+          </h1>
+          <p class="max-w-3xl text-base leading-8 text-slate-300 lg:text-lg">
+            Analise rapidamente emails corporativos a partir de texto ou arquivo, com
+            classificação clara, justificativa objetiva e sugestão de resposta profissional.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-3 text-xs font-medium text-slate-300">
+          <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2">Fluxo simples para operações</span>
+          <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2">Upload de TXT e PDF</span>
+          <span class="rounded-full border border-white/10 bg-white/5 px-3 py-2">Retorno estruturado para uso rápido</span>
+        </div>
+      </header>
+
+      <section class="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
+        <div class="rounded-[28px] border border-white/10 bg-white/6 p-6 shadow-2xl shadow-cyan-950/20 backdrop-blur transition-all duration-300 lg:p-8">
+          <form id="analysis-form" class="space-y-6">
+            <section class="rounded-3xl border border-white/10 bg-slate-950/55 p-5">
+              <div class="mb-3 flex items-center justify-between gap-4">
+                <label for="email-text" class="text-sm font-semibold text-slate-100">Texto do email</label>
+                <span id="char-count" class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                  0 caracteres
+                </span>
               </div>
+
               <textarea
                 id="email-text"
                 name="text"
-                rows="12"
-                class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-cyan-400"
-                placeholder="Cole aqui o conteúdo do email..."
+                rows="13"
+                class="w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-4 text-sm leading-7 text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-cyan-400 focus:bg-slate-900"
+                placeholder="Cole aqui o conteúdo do email para análise..."
               ></textarea>
-            </div>
+            </section>
 
-            <div>
-              <label for="email-file" class="mb-2 block text-sm font-medium text-slate-200">Arquivo .txt ou .pdf</label>
-              <div id="dropzone" class="rounded-2xl border border-dashed border-white/15 bg-slate-900/60 p-5 text-sm text-slate-300">
-                <input id="email-file" name="file" type="file" accept=".txt,.pdf" class="block w-full cursor-pointer text-sm text-slate-300" />
-                <p class="mt-2 text-xs text-slate-400">Arraste um arquivo para esta área ou selecione manualmente.</p>
+            <section class="rounded-3xl border border-white/10 bg-slate-950/55 p-5">
+              <div class="mb-3">
+                <p class="text-sm font-semibold text-slate-100">Arquivo .txt ou .pdf</p>
+                <p class="mt-1 text-sm text-slate-400">Envie um arquivo ou combine com texto. Se os dois forem enviados, o arquivo terá prioridade.</p>
               </div>
-            </div>
 
-            <div class="flex flex-wrap gap-3">
+              <div id="dropzone" class="rounded-2xl border border-dashed border-white/15 bg-slate-900/70 p-5 transition-all duration-300 hover:border-cyan-300/30">
+                <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div class="flex gap-4">
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10 text-xs font-semibold text-cyan-200">
+                      TXT
+                      <br />
+                      PDF
+                    </div>
+                    <div>
+                      <p class="text-sm font-medium text-slate-100">Arraste um arquivo para esta área</p>
+                      <p class="mt-1 text-sm text-slate-400">Ou selecione manualmente a partir do seu computador.</p>
+                    </div>
+                  </div>
+
+                  <label class="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-slate-100 transition hover:border-cyan-300/40 hover:bg-white/5">
+                    Selecionar arquivo
+                    <input id="email-file" name="file" type="file" accept=".txt,.pdf" class="hidden" />
+                  </label>
+                </div>
+
+                <div class="mt-4 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3">
+                  <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Arquivo selecionado</p>
+                  <p id="file-summary" class="mt-2 text-sm font-medium text-cyan-100">Nenhum arquivo selecionado.</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="rounded-3xl border border-white/10 bg-slate-950/55 p-5">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-sm font-semibold text-slate-100">Exemplos rápidos</p>
+                  <p class="mt-1 text-sm text-slate-400">Preencha o campo com um cenário de teste pronto.</p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-3">
+                <button type="button" data-example="status" class="example-button rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-cyan-400/10">
+                  Cobrança de status
+                </button>
+                <button type="button" data-example="support" class="example-button rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-cyan-400/10">
+                  Suporte técnico
+                </button>
+                <button type="button" data-example="documentation" class="example-button rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-cyan-400/10">
+                  Envio de documentação
+                </button>
+                <button type="button" data-example="gratitude" class="example-button rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-300/40 hover:bg-cyan-400/10">
+                  Agradecimento genérico
+                </button>
+              </div>
+            </section>
+
+            <div class="flex flex-wrap items-center gap-3">
               <button
                 id="submit-button"
                 type="submit"
@@ -51,51 +124,97 @@
               <button
                 id="clear-button"
                 type="button"
-                class="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-white/30 hover:bg-white/5"
+                class="rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-slate-100 transition hover:border-white/30 hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Limpar
               </button>
             </div>
           </form>
 
-          <div id="feedback" class="mt-6 hidden rounded-2xl border px-4 py-3 text-sm"></div>
+          <div id="feedback" class="mt-6 hidden rounded-2xl border px-4 py-4 text-sm leading-6" aria-live="polite"></div>
         </div>
 
-        <aside class="rounded-3xl border border-white/10 bg-slate-900/80 p-8 shadow-2xl shadow-black/20">
-          <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">Resultado</p>
-          <div id="empty-state" class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm leading-7 text-slate-300">
-            O resultado da análise aparecerá aqui com categoria, justificativa e resposta sugerida.
+        <aside class="rounded-[28px] border border-white/10 bg-slate-900/85 p-6 shadow-2xl shadow-black/30 backdrop-blur transition-all duration-300 lg:p-8">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">Resultado</p>
+              <h2 class="mt-2 text-2xl font-semibold text-white">Análise do email</h2>
+            </div>
+
+            <div id="result-status-note" class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+              Aguardando entrada
+            </div>
           </div>
 
-          <div id="loading-state" class="mt-6 hidden rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-6 text-sm text-cyan-100">
-            Processando o email, aguarde...
+          <div id="empty-state" class="mt-6 rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div class="flex items-center gap-3">
+              <div class="h-3 w-3 rounded-full bg-cyan-300"></div>
+              <p class="text-sm font-semibold text-white">Nenhuma análise executada ainda</p>
+            </div>
+
+            <p class="mt-4 text-sm leading-7 text-slate-300">
+              Quando você enviar um texto ou arquivo, o SmartInbox mostrará a categoria,
+              a justificativa e a resposta sugerida neste painel.
+            </p>
+
+            <div class="mt-5 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Categoria</p>
+                <p class="mt-2 text-sm font-medium text-slate-200">Produtivo ou Improdutivo</p>
+              </div>
+              <div class="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Resposta</p>
+                <p class="mt-2 text-sm font-medium text-slate-200">Sugestão pronta para revisão</p>
+              </div>
+            </div>
           </div>
 
-          <div id="result-card" class="mt-6 hidden space-y-5 rounded-2xl border border-white/10 bg-white/5 p-6">
-            <div>
-              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Categoria</p>
-              <p id="result-category" class="mt-2 text-2xl font-bold text-white"></p>
+          <div id="loading-state" class="mt-6 hidden rounded-3xl border border-cyan-400/20 bg-cyan-400/8 p-6">
+            <p class="text-sm font-semibold text-cyan-100">Processando análise...</p>
+            <p class="mt-2 text-sm leading-7 text-cyan-50/90">
+              Estamos extraindo o conteúdo, aplicando o pré-processamento e montando a resposta.
+            </p>
+
+            <div class="mt-5 space-y-3">
+              <div class="h-3 w-32 animate-pulse rounded-full bg-cyan-200/20"></div>
+              <div class="h-3 w-full animate-pulse rounded-full bg-cyan-200/15"></div>
+              <div class="h-3 w-5/6 animate-pulse rounded-full bg-cyan-200/10"></div>
             </div>
-            <div>
-              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Justificativa</p>
-              <p id="result-reason" class="mt-2 text-sm leading-7 text-slate-200"></p>
+          </div>
+
+          <div id="result-card" class="mt-6 hidden rounded-3xl border border-white/10 bg-white/5 p-6 transition-all duration-300">
+            <div class="flex flex-wrap items-center gap-3">
+              <span id="result-category-badge" class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-200">
+                Categoria
+              </span>
+              <span id="result-confidence-badge" class="rounded-full border border-white/10 bg-slate-950/70 px-4 py-2 text-xs font-medium text-slate-300">
+                Confiança: Não informado
+              </span>
             </div>
-            <div>
+
+            <div class="mt-6">
+              <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Categoria identificada</p>
+              <p id="result-category" class="mt-2 text-3xl font-semibold text-white"></p>
+            </div>
+
+            <div class="mt-6">
+              <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Justificativa</p>
+              <p id="result-reason" class="mt-3 text-sm leading-7 text-slate-200"></p>
+            </div>
+
+            <div class="mt-6 rounded-2xl border border-white/10 bg-slate-950/65 p-5">
               <div class="flex items-center justify-between gap-4">
-                <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Resposta sugerida</p>
+                <p class="text-xs uppercase tracking-[0.25em] text-slate-500">Resposta sugerida</p>
                 <button
                   id="copy-button"
                   type="button"
-                  class="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/5"
+                  disabled
+                  class="rounded-full border border-white/15 px-3 py-1.5 text-xs font-semibold text-slate-200 transition hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Copiar
                 </button>
               </div>
-              <p id="result-reply" class="mt-2 whitespace-pre-line text-sm leading-7 text-slate-200"></p>
-            </div>
-            <div>
-              <p class="text-xs uppercase tracking-[0.25em] text-slate-400">Confiança</p>
-              <p id="result-confidence" class="mt-2 text-sm text-slate-200">Não informado</p>
+              <p id="result-reply" class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-200"></p>
             </div>
           </div>
         </aside>

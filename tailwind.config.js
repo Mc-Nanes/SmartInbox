@@ -3,7 +3,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Segoe UI", "sans-serif"],
+        sans: ["Aptos", "Segoe UI", "system-ui", "sans-serif"],
       },
     },
   },
