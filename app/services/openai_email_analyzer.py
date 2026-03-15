@@ -188,7 +188,7 @@ class OpenAIEmailAnalyzerService:
         if category == EmailCategory.PRODUCTIVE:
             return (
                 "Olá,\n\n"
-                f"Obrigado pela mensagem sobre {preview}. O conteúdo foi recebido e pode ser tratado a partir "
+                f"Obrigado pela mensagem sobre:'' {preview}''. O conteúdo foi recebido e pode ser tratado a partir "
                 "das informações enviadas. Caso exista algum detalhe complementar relevante, ele pode ser "
                 "encaminhado por este mesmo canal.\n\n"
                 "Atenciosamente,"
