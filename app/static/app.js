@@ -21,6 +21,7 @@ const exampleButtons = document.querySelectorAll(".example-button");
 
 const allowedExtensions = [".txt", ".pdf"];
 const defaultFileSummary = "Nenhum arquivo selecionado.";
+let isLoading = false;
 
 const examples = {
   status: "Olá, poderia nos informar o status da regularização do cadastro do cliente e a previsão de conclusão? Precisamos atualizar a área responsável ainda hoje.",
@@ -53,7 +54,7 @@ function formatFileSize(sizeInBytes) {
 
 function setStatusNote(label, kind = "idle") {
   resultStatusNote.textContent = label;
-  
+
   if (kind === "idle") {
     delete resultStatusNote.dataset.kind;
   } else {
@@ -83,8 +84,14 @@ function updateFileSummary() {
   updateDropzoneState();
 }
 
-function setLoading(isLoading) {
-  submitButton.disabled = isLoading;
+function updateSubmitButtonState() {
+  const hasValidInput = hasTypedText() || Boolean(getSelectedFile());
+  submitButton.disabled = isLoading || !hasValidInput;
+}
+
+function setLoading(nextIsLoading) {
+  isLoading = nextIsLoading;
+  updateSubmitButtonState();
   clearButton.disabled = isLoading;
   copyButton.disabled = isLoading || !resultReply.textContent.trim();
 }
@@ -147,12 +154,6 @@ function isAllowedFile(file) {
 
 function validateForm() {
   const file = getSelectedFile();
-
-  if (!hasTypedText() && !file) {
-    showFeedback("Informe o texto do email ou envie um arquivo antes de analisar.", "error", "validation");
-    setStatusNote("Erro", "error");
-    return false;
-  }
 
   if (file && !isAllowedFile(file)) {
     showFeedback("Formato inválido. Envie apenas arquivos .txt ou .pdf.", "error", "validation");
@@ -239,7 +240,6 @@ async function handleSubmit(event) {
     }
 
     renderResult(data);
-
     showFeedback("Análise concluída com sucesso.", "success", "submit");
   } catch (error) {
     resetResult();
@@ -256,6 +256,7 @@ function handleClear() {
   fileInput.value = "";
   updateCharCount();
   updateFileSummary();
+  updateSubmitButtonState();
   hideFeedback();
   resetResult();
 }
@@ -278,18 +279,21 @@ async function handleCopyReply() {
 function handleFileSelection(file) {
   if (!file) {
     updateFileSummary();
+    updateSubmitButtonState();
     syncCombinedContentHint();
     return;
   }
 
   if (!isAllowedFile(file)) {
     setSelectedFile(null);
+    updateSubmitButtonState();
     showFeedback("Formato inválido. Envie apenas arquivos .txt ou .pdf.", "error", "validation");
     setStatusNote("Erro", "error");
     return;
   }
 
   setSelectedFile(file);
+  updateSubmitButtonState();
   if (!hasTypedText()) {
     showFeedback(`Arquivo "${file.name}" pronto para envio.`, "info", "file");
   }
@@ -302,6 +306,7 @@ function handleDrop(event) {
 
   const droppedFile = event.dataTransfer.files[0];
   handleFileSelection(droppedFile);
+  updateSubmitButtonState();
 }
 
 function handleDragOver(event) {
@@ -330,6 +335,7 @@ function handleExampleClick(event) {
   textarea.value = exampleText;
   updateCharCount();
   updateFileSummary();
+  updateSubmitButtonState();
   syncCombinedContentHint();
   textarea.focus();
 
@@ -344,11 +350,13 @@ function handleExampleClick(event) {
 textarea.addEventListener("input", () => {
   updateCharCount();
   updateFileSummary();
+  updateSubmitButtonState();
   syncCombinedContentHint();
 });
 
 fileInput.addEventListener("change", () => {
   handleFileSelection(getSelectedFile());
+  updateSubmitButtonState();
 });
 
 exampleButtons.forEach((button) => {
@@ -365,3 +373,4 @@ dropzone.addEventListener("drop", handleDrop);
 updateCharCount();
 updateFileSummary();
 resetResult();
+updateSubmitButtonState();
