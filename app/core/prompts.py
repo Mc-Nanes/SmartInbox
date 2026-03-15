@@ -1,4 +1,4 @@
-CLASSIFICATION_SYSTEM_PROMPT = """
+ANALYSIS_SYSTEM_PROMPT = """
 Você classifica emails corporativos em apenas uma categoria:
 - Produtivo
 - Improdutivo
@@ -6,55 +6,54 @@ Você classifica emails corporativos em apenas uma categoria:
 Considere Produtivo quando houver necessidade de ação, resposta, acompanhamento,
 análise, suporte, envio de informação relevante ou demanda operacional.
 
-Considere Improdutivo quando não houver demanda prática imediata ou relevância operacional,
+Considere Improdutivo quando não houver demanda prática imediata nem relevância operacional,
 como felicitações, agradecimentos genéricos ou mensagens casuais.
 
-Se houver ambiguidade, escolha a classificação mais justificável, com postura conservadora
-e profissional. Não invente contexto ausente.
+Regras obrigatórias:
+- Nunca invente contexto, fatos, prazos, anexos, ações executadas ou informações ausentes.
+- A justificativa deve ser curta, objetiva e baseada apenas no conteúdo fornecido.
+- A suggested_reply deve ser profissional, útil, conservadora e coerente com o email.
+- A suggested_reply não pode prometer ações que o sistema não executa.
+- A suggested_reply não pode inventar informações que não estejam presentes no email.
+- A confidence deve ser um número entre 0 e 1.
+- Retorne somente JSON válido.
+- Não use markdown.
+- Não use cercas de código.
+- Não escreva nenhum texto fora do JSON.
 
-Retorne estritamente um JSON com:
-- category
-- reason
-- confidence
-"""
-
-
-REPLY_SYSTEM_PROMPT = """
-Você gera respostas profissionais curtas para emails corporativos.
-Não invente fatos que não estejam no email.
-Não prometa ações que o sistema não executa.
-Evite respostas genéricas demais ou longas demais.
-"""
-
-
-def build_classification_prompt(email_text: str, processed_text: str) -> str:
-    return f"""
-Email original:
-{email_text}
-
-Texto preprocessado:
-{processed_text}
-
-Responda apenas com JSON válido no formato:
-{{
-  "category": "Produtivo ou Improdutivo",
-  "reason": "justificativa objetiva",
+Formato obrigatório:
+{
+  "category": "Produtivo" | "Improdutivo",
+  "reason": "string",
+  "suggested_reply": "string",
   "confidence": 0.0
-}}
+}
+
+Few-shot:
+
+Exemplo 1
+Email:
+"Bom dia, podem informar o status da correção do erro no sistema e a previsão de liberação?"
+
+Saída:
+{"category":"Produtivo","reason":"O email solicita atualização de andamento e requer resposta sobre uma demanda operacional.","suggested_reply":"Olá, obrigado pela mensagem. Recebemos a solicitação de atualização sobre a correção do erro no sistema. Se necessário, envie qualquer detalhe adicional relevante por este canal para apoiar o acompanhamento. Atenciosamente,","confidence":0.93}
+
+Exemplo 2
+Email:
+"Obrigado pelo apoio de vocês nesta semana. Foi um excelente trabalho."
+
+Saída:
+{"category":"Improdutivo","reason":"O conteúdo é um agradecimento cordial, sem pedido de ação ou acompanhamento operacional.","suggested_reply":"Olá, agradecemos a mensagem e o retorno positivo. Permanecemos à disposição caso surja alguma demanda adicional. Atenciosamente,","confidence":0.91}
 """.strip()
 
 
-def build_reply_prompt(email_text: str, category: str, reason: str) -> str:
+def build_analysis_prompt(email_text: str, processed_text: str) -> str:
     return f"""
-Email:
+Analise o conteúdo abaixo e responda somente com JSON válido no formato obrigatório.
+
+Email original:
 {email_text}
 
-Categoria definida:
-{category}
-
-Motivo da classificação:
-{reason}
-
-Gere uma resposta sugerida profissional, objetiva e coerente com o conteúdo.
-Retorne apenas o texto final da resposta.
+Palavras-chave extraídas do preprocessamento:
+{processed_text}
 """.strip()

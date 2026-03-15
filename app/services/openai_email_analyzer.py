@@ -5,29 +5,103 @@ from openai import OpenAI
 
 from app.core.config import get_settings
 from app.core.exceptions import OpenAIIntegrationError, ServiceConfigurationError
-from app.core.prompts import (
-    CLASSIFICATION_SYSTEM_PROMPT,
-    REPLY_SYSTEM_PROMPT,
-    build_classification_prompt,
-    build_reply_prompt,
-)
+from app.core.prompts import ANALYSIS_SYSTEM_PROMPT, build_analysis_prompt
 from app.schemas.analysis import AnalysisResponse, ClassificationResult, EmailCategory
 
 
 class OpenAIEmailAnalyzerService:
     def __init__(self) -> None:
         self.settings = get_settings()
+        self._client: OpenAI | None = None
 
     def analyze_email(self, original_text: str, normalized_text: str, processed_text: str) -> AnalysisResponse:
-        classification = self.classify_email(
-            original_text=original_text,
+        if not self.settings.openai_api_key:
+            if self.settings.enable_local_ai_fallback:
+                return self._analyze_with_fallback(
+                    original_text=original_text,
+                    normalized_text=normalized_text,
+                    processed_text=processed_text,
+                )
+            self._raise_missing_api_key()
+
+        prompt = build_analysis_prompt(
+            email_text=original_text,
+            processed_text=processed_text,
+        )
+
+        try:
+            response = self._get_client().responses.create(
+                model=self.settings.openai_model,
+                input=[
+                    {"role": "system", "content": ANALYSIS_SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt},
+                ],
+            )
+            payload = self._parse_json_payload(response.output_text)
+            return AnalysisResponse.model_validate(payload)
+        except OpenAIIntegrationError as exc:
+            if self.settings.enable_local_ai_fallback:
+                return self._analyze_with_fallback(
+                    original_text=original_text,
+                    normalized_text=normalized_text,
+                    processed_text=processed_text,
+                )
+            raise exc
+        except Exception as exc:
+            if self.settings.enable_local_ai_fallback:
+                return self._analyze_with_fallback(
+                    original_text=original_text,
+                    normalized_text=normalized_text,
+                    processed_text=processed_text,
+                )
+            raise OpenAIIntegrationError("Falha ao analisar o email com a OpenAI.", status_code=502) from exc
+
+    def _get_client(self) -> OpenAI:
+        if self._client is None:
+            if not self.settings.openai_api_key:
+                self._raise_missing_api_key()
+            self._client = OpenAI(api_key=self.settings.openai_api_key)
+        return self._client
+
+    def _parse_json_payload(self, response_text: str) -> dict:
+        cleaned_text = (response_text or "").strip()
+        if not cleaned_text:
+            raise OpenAIIntegrationError("A OpenAI não retornou conteúdo na análise.", status_code=502)
+
+        fenced_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", cleaned_text, flags=re.DOTALL)
+        if fenced_match:
+            cleaned_text = fenced_match.group(1).strip()
+        else:
+            json_match = re.search(r"\{.*\}", cleaned_text, flags=re.DOTALL)
+            if json_match:
+                cleaned_text = json_match.group(0).strip()
+
+        try:
+            payload = json.loads(cleaned_text)
+        except json.JSONDecodeError as exc:
+            raise OpenAIIntegrationError(
+                "A OpenAI retornou um JSON inválido para a análise.",
+                status_code=502,
+            ) from exc
+
+        if not isinstance(payload, dict):
+            raise OpenAIIntegrationError("A OpenAI retornou uma estrutura JSON inválida para a análise.", status_code=502)
+
+        return payload
+
+    def _analyze_with_fallback(
+        self,
+        original_text: str,
+        normalized_text: str,
+        processed_text: str,
+    ) -> AnalysisResponse:
+        classification = self._classify_with_fallback(
             normalized_text=normalized_text,
             processed_text=processed_text,
         )
-        suggested_reply = self.generate_suggested_reply(
-            original_text=original_text,
+        suggested_reply = self._generate_reply_with_fallback(
             category=classification.category,
-            reason=classification.reason,
+            original_text=original_text,
         )
 
         return AnalysisResponse(
@@ -36,88 +110,6 @@ class OpenAIEmailAnalyzerService:
             suggested_reply=suggested_reply,
             confidence=classification.confidence,
         )
-
-    def classify_email(
-        self,
-        original_text: str,
-        normalized_text: str,
-        processed_text: str,
-    ) -> ClassificationResult:
-        if not self.settings.openai_api_key:
-            if self.settings.enable_local_ai_fallback:
-                return self._classify_with_fallback(normalized_text=normalized_text, processed_text=processed_text)
-            self._raise_missing_api_key()
-
-        client = self._build_client()
-        prompt = build_classification_prompt(email_text=original_text, processed_text=processed_text)
-
-        try:
-            response = client.responses.create(
-                model=self.settings.openai_model,
-                input=[
-                    {"role": "system", "content": CLASSIFICATION_SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt},
-                ],
-            )
-            payload = self._parse_json_payload(response.output_text)
-            return ClassificationResult.model_validate(payload)
-        except OpenAIIntegrationError as exc:
-            if self.settings.enable_local_ai_fallback:
-                return self._classify_with_fallback(normalized_text=normalized_text, processed_text=processed_text)
-            raise exc
-        except Exception as exc:
-            if self.settings.enable_local_ai_fallback:
-                return self._classify_with_fallback(normalized_text=normalized_text, processed_text=processed_text)
-            raise OpenAIIntegrationError("Falha ao classificar o email com a OpenAI.", status_code=502) from exc
-
-    def generate_suggested_reply(self, original_text: str, category: EmailCategory, reason: str) -> str:
-        if not self.settings.openai_api_key:
-            if self.settings.enable_local_ai_fallback:
-                return self._generate_reply_with_fallback(category=category, original_text=original_text)
-            self._raise_missing_api_key()
-
-        client = self._build_client()
-        prompt = build_reply_prompt(email_text=original_text, category=category.value, reason=reason)
-
-        try:
-            response = client.responses.create(
-                model=self.settings.openai_model,
-                input=[
-                    {"role": "system", "content": REPLY_SYSTEM_PROMPT},
-                    {"role": "user", "content": prompt},
-                ],
-            )
-            reply = response.output_text.strip()
-        except Exception as exc:
-            if self.settings.enable_local_ai_fallback:
-                return self._generate_reply_with_fallback(category=category, original_text=original_text)
-            raise OpenAIIntegrationError("Falha ao gerar a resposta sugerida com a OpenAI.", status_code=502) from exc
-
-        if not reply:
-            if self.settings.enable_local_ai_fallback:
-                return self._generate_reply_with_fallback(category=category, original_text=original_text)
-            raise OpenAIIntegrationError("A OpenAI não retornou uma resposta sugerida válida.", status_code=502)
-
-        return reply
-
-    def _build_client(self) -> OpenAI:
-        if not self.settings.openai_api_key:
-            self._raise_missing_api_key()
-
-        return OpenAI(api_key=self.settings.openai_api_key)
-
-    def _parse_json_payload(self, response_text: str) -> dict:
-        cleaned_text = response_text.strip()
-        fenced_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", cleaned_text, flags=re.DOTALL)
-        if fenced_match:
-            cleaned_text = fenced_match.group(1)
-        try:
-            return json.loads(cleaned_text)
-        except json.JSONDecodeError as exc:
-            raise OpenAIIntegrationError(
-                "A OpenAI retornou um JSON inválido para a classificação.",
-                status_code=502,
-            ) from exc
 
     def _classify_with_fallback(self, normalized_text: str, processed_text: str) -> ClassificationResult:
         productive_terms = {
@@ -188,7 +180,7 @@ class OpenAIEmailAnalyzerService:
         if category == EmailCategory.PRODUCTIVE:
             return (
                 "Olá,\n\n"
-                f"Obrigado pela mensagem sobre:'' {preview}''. O conteúdo foi recebido e pode ser tratado a partir "
+                f"Obrigado pela mensagem sobre \"{preview}\". O conteúdo foi recebido e pode ser tratado a partir "
                 "das informações enviadas. Caso exista algum detalhe complementar relevante, ele pode ser "
                 "encaminhado por este mesmo canal.\n\n"
                 "Atenciosamente,"
