@@ -21,13 +21,12 @@ const exampleButtons = document.querySelectorAll(".example-button");
 
 const allowedExtensions = [".txt", ".pdf"];
 const defaultFileSummary = "Nenhum arquivo selecionado.";
-const feedbackBaseClass = "mt-6 rounded-2xl border px-4 py-4 text-sm leading-6";
 
 const examples = {
   status: "Olá, poderia nos informar o status da regularização do cadastro do cliente e a previsão de conclusão? Precisamos atualizar a área responsável ainda hoje.",
   support: "Bom dia, estamos com erro ao acessar o sistema interno desde o início da manhã. Podem verificar a falha e orientar o próximo passo?",
   documentation: "Segue em anexo a documentação solicitada para continuidade da análise. Caso precisem de algo adicional, por favor nos sinalizem.",
-  gratitude: "Obrigado pelo apoio no fechamento desta demanda. A equipe ficou satisfeita com o suporte prestado."
+  gratitude: "Obrigado pelo apoio no fechamento desta demanda. estamos à disposição para futuras colaborações. Tenha um ótimo dia!",
 };
 
 function getSelectedFile() {
@@ -46,34 +45,20 @@ function formatFileSize(sizeInBytes) {
   if (sizeInBytes < 1024) {
     return `${sizeInBytes} B`;
   }
-
   if (sizeInBytes < 1024 * 1024) {
     return `${(sizeInBytes / 1024).toFixed(1)} KB`;
   }
-
   return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function setStatusNote(label, kind = "idle") {
   resultStatusNote.textContent = label;
-  resultStatusNote.className = "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em]";
-
-  if (kind === "success") {
-    resultStatusNote.classList.add("border-emerald-400/30", "bg-emerald-400/10", "text-emerald-100");
-    return;
+  
+  if (kind === "idle") {
+    delete resultStatusNote.dataset.kind;
+  } else {
+    resultStatusNote.dataset.kind = kind;
   }
-
-  if (kind === "error") {
-    resultStatusNote.classList.add("border-rose-400/30", "bg-rose-400/10", "text-rose-100");
-    return;
-  }
-
-  if (kind === "loading") {
-    resultStatusNote.classList.add("border-cyan-400/30", "bg-cyan-400/10", "text-cyan-100");
-    return;
-  }
-
-  resultStatusNote.classList.add("border-white/10", "bg-white/5", "text-slate-300");
 }
 
 function setViewState({ showEmpty, showLoading, showResult }) {
@@ -84,11 +69,7 @@ function setViewState({ showEmpty, showLoading, showResult }) {
 
 function updateDropzoneState() {
   const hasFile = Boolean(getSelectedFile());
-  dropzone.classList.remove("border-cyan-400/50", "bg-cyan-400/5", "border-emerald-400/30", "bg-emerald-400/5");
-
-  if (hasFile) {
-    dropzone.classList.add("border-emerald-400/30", "bg-emerald-400/5");
-  }
+  dropzone.classList.toggle("is-file-selected", hasFile);
 }
 
 function updateFileSummary() {
@@ -98,7 +79,6 @@ function updateFileSummary() {
     updateDropzoneState();
     return;
   }
-
   fileSummary.textContent = `${file.name} - ${formatFileSize(file.size)}`;
   updateDropzoneState();
 }
@@ -111,18 +91,8 @@ function setLoading(isLoading) {
 
 function showFeedback(message, kind = "info", context = "general") {
   feedback.textContent = message;
-  feedback.className = feedbackBaseClass;
   feedback.dataset.kind = kind;
   feedback.dataset.context = context;
-
-  if (kind === "error") {
-    feedback.classList.add("border-rose-400/30", "bg-rose-400/10", "text-rose-100");
-  } else if (kind === "success") {
-    feedback.classList.add("border-emerald-400/30", "bg-emerald-400/10", "text-emerald-100");
-  } else {
-    feedback.classList.add("border-cyan-400/30", "bg-cyan-400/10", "text-cyan-100");
-  }
-
   feedback.classList.remove("hidden");
 }
 
@@ -139,14 +109,7 @@ function hasFeedbackContext(context) {
 
 function applyCategoryVisual(category) {
   resultCategoryBadge.textContent = category;
-  resultCategoryBadge.className = "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em]";
-
-  if (category === "Produtivo") {
-    resultCategoryBadge.classList.add("border-emerald-400/30", "bg-emerald-400/10", "text-emerald-100");
-    return;
-  }
-
-  resultCategoryBadge.classList.add("border-amber-400/30", "bg-amber-400/10", "text-amber-100");
+  resultCategoryBadge.dataset.category = category === "Produtivo" ? "productive" : "unproductive";
 }
 
 function resetResult() {
@@ -155,7 +118,7 @@ function resetResult() {
   resultReason.textContent = "";
   resultReply.textContent = "";
   resultCategoryBadge.textContent = "Categoria";
-  resultCategoryBadge.className = "rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-200";
+  delete resultCategoryBadge.dataset.category;
   resultConfidenceBadge.textContent = "Confiança: Não informado";
   copyButton.disabled = true;
   setStatusNote("Aguardando entrada", "idle");
@@ -335,7 +298,7 @@ function handleFileSelection(file) {
 
 function handleDrop(event) {
   event.preventDefault();
-  dropzone.classList.remove("border-cyan-400/50", "bg-cyan-400/5");
+  dropzone.classList.remove("is-drag-over");
 
   const droppedFile = event.dataTransfer.files[0];
   handleFileSelection(droppedFile);
@@ -343,13 +306,11 @@ function handleDrop(event) {
 
 function handleDragOver(event) {
   event.preventDefault();
-  dropzone.classList.remove("border-white/15");
-  dropzone.classList.add("border-cyan-400/50", "bg-cyan-400/5");
+  dropzone.classList.add("is-drag-over");
 }
 
 function handleDragLeave() {
-  dropzone.classList.remove("border-cyan-400/50", "bg-cyan-400/5");
-  dropzone.classList.add("border-white/15");
+  dropzone.classList.remove("is-drag-over");
   updateDropzoneState();
 }
 
