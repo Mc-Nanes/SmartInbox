@@ -99,8 +99,7 @@ function updateFileSummary() {
     return;
   }
 
-  const priorityNote = hasTypedText() ? " - prioridade do arquivo ativa" : "";
-  fileSummary.textContent = `${file.name} - ${formatFileSize(file.size)}${priorityNote}`;
+  fileSummary.textContent = `${file.name} - ${formatFileSize(file.size)}`;
   updateDropzoneState();
 }
 
@@ -225,13 +224,13 @@ async function parseResponse(response) {
   return { detail: text };
 }
 
-function syncPriorityHint() {
+function syncCombinedContentHint() {
   if (getSelectedFile() && hasTypedText()) {
-    showFeedback("Texto e arquivo presentes. Se enviar ambos, o arquivo terá prioridade na análise.", "info", "priority");
+    showFeedback("Texto e arquivo presentes. Se enviar ambos, os dois conteúdos serão analisados em conjunto.", "info", "combined-input");
     return;
   }
 
-  if (hasFeedbackContext("priority")) {
+  if (hasFeedbackContext("combined-input")) {
     hideFeedback();
   }
 }
@@ -247,7 +246,7 @@ async function handleSubmit(event) {
   const textProvided = hasTypedText();
 
   if (file && textProvided) {
-    showFeedback("Texto e arquivo enviados juntos. O arquivo terá prioridade na análise.", "info", "priority");
+    showFeedback("Texto e arquivo presentes. Se enviar ambos, os dois conteúdos serão analisados em conjunto.", "info", "combined-input");
   } else {
     hideFeedback();
   }
@@ -278,11 +277,7 @@ async function handleSubmit(event) {
 
     renderResult(data);
 
-    if (file && textProvided) {
-      showFeedback("Análise concluída com sucesso. O arquivo enviado foi usado como prioridade.", "success", "submit");
-    } else {
-      showFeedback("Análise concluída com sucesso.", "success", "submit");
-    }
+    showFeedback("Análise concluída com sucesso.", "success", "submit");
   } catch (error) {
     resetResult();
     setStatusNote("Erro", "error");
@@ -320,7 +315,7 @@ async function handleCopyReply() {
 function handleFileSelection(file) {
   if (!file) {
     updateFileSummary();
-    syncPriorityHint();
+    syncCombinedContentHint();
     return;
   }
 
@@ -335,7 +330,7 @@ function handleFileSelection(file) {
   if (!hasTypedText()) {
     showFeedback(`Arquivo "${file.name}" pronto para envio.`, "info", "file");
   }
-  syncPriorityHint();
+  syncCombinedContentHint();
 }
 
 function handleDrop(event) {
@@ -348,10 +343,13 @@ function handleDrop(event) {
 
 function handleDragOver(event) {
   event.preventDefault();
+  dropzone.classList.remove("border-white/15");
   dropzone.classList.add("border-cyan-400/50", "bg-cyan-400/5");
 }
 
 function handleDragLeave() {
+  dropzone.classList.remove("border-cyan-400/50", "bg-cyan-400/5");
+  dropzone.classList.add("border-white/15");
   updateDropzoneState();
 }
 
@@ -371,11 +369,11 @@ function handleExampleClick(event) {
   textarea.value = exampleText;
   updateCharCount();
   updateFileSummary();
-  syncPriorityHint();
+  syncCombinedContentHint();
   textarea.focus();
 
   if (hadSelectedFile) {
-    showFeedback(`Exemplo "${exampleLabel}" preenchido. O arquivo selecionado foi removido para priorizar o texto de teste.`, "info", "example");
+    showFeedback(`Exemplo "${exampleLabel}" preenchido. O arquivo selecionado foi removido para usar apenas o texto de teste.`, "info", "example");
     return;
   }
 
@@ -385,7 +383,7 @@ function handleExampleClick(event) {
 textarea.addEventListener("input", () => {
   updateCharCount();
   updateFileSummary();
-  syncPriorityHint();
+  syncCombinedContentHint();
 });
 
 fileInput.addEventListener("change", () => {
