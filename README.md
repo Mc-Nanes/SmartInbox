@@ -110,9 +110,9 @@ Explicação:
 
 Esse fluxo permite ver as alterações em tempo real no navegador.
 
-## Build final do CSS
+## Build final
 
-Antes de executar a aplicação em modo final, o CSS deve ser compilado em versão otimizada.
+Antes de executar a aplicação, o CSS deve ser compilado em versão otimizada.
 
 Execute:
 
