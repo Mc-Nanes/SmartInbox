@@ -3,5 +3,5 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
-app/static/output.css
+#app/static/output.css
 tailwindcss.exe
